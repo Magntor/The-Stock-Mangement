@@ -1,408 +1,369 @@
+# STOCK MANAGEMENT
+
 import os
 import mysql.connector
-from mysql.connector import Error
-from datetime import datetime
-
-# Database configuration
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '12345',
-    'database': 'stock'
-}
+import datetime
+now = datetime.datetime.now()
 
 
-def get_connection():
-    """Establish and return a database connection."""
-    try:
-        conn = mysql.connector.connect(**DB_CONFIG)
-        return conn
-    except Error as e:
-        print(f"Error connecting to database: {e}")
-        return None
+def product_mgmt( ):
+           while True :
+                      print("\t\t\t 1. Add New Product")
+                      print("\t\t\t 2. List Product")
+                      print("\t\t\t 3. Update Product")
+                      print("\t\t\t 4. Delete Product")
+                      print("\t\t\t 5. Back (Main Menu)")
+                      p=int (input("\t\tEnter Your Choice :"))
+                      if p==1:
+                                 add_product()
+                      if p==2:
+                                 search_product()
+                      if p==3:
+                                 update_product()
+                      if p==4:
+                                 delete_product()
+                      if p== 5 :
+                                 break
 
+def purchase_mgmt( ):
+           while True :
+                      print("\t\t\t 1. Add Order")
+                      print("\t\t\t 2. List Order")
+                      print("\t\t\t 3. Back (Main Menu)")
+                      o=int (input("\t\tEnter Your Choice :"))
+                      if o==1 :
+                                 add_order()
+                      if o==2 :
+                                 list_order()
+                      if o== 3 :
+                                 break
 
-def initialize_db():
-    """Create necessary tables if they don't exist."""
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    # Use AUTO_INCREMENT for orders and sales
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS product (
-            pcode INT(4) PRIMARY KEY,
-            pname VARCHAR(50) NOT NULL,
-            pprice DECIMAL(10,2) NOT NULL,
-            pqty INT NOT NULL,
-            pcat VARCHAR(30)
-        ) ENGINE=InnoDB;
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS orders (
-            orderid INT AUTO_INCREMENT PRIMARY KEY,
-            orderdate DATETIME NOT NULL,
-            pcode INT(4) NOT NULL,
-            pprice DECIMAL(10,2) NOT NULL,
-            pqty INT NOT NULL,
-            supplier VARCHAR(50),
-            pcat VARCHAR(30),
-            FOREIGN KEY (pcode) REFERENCES product(pcode) ON DELETE CASCADE
-        ) ENGINE=InnoDB;
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sales (
-            salesid INT AUTO_INCREMENT PRIMARY KEY,
-            salesdate DATETIME NOT NULL,
-            pcode INT(4) NOT NULL,
-            pprice DECIMAL(10,2) NOT NULL,
-            pqty INT NOT NULL,
-            total DECIMAL(10,2) NOT NULL,
-            FOREIGN KEY (pcode) REFERENCES product(pcode) ON DELETE CASCADE
-        ) ENGINE=InnoDB;
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user (
-            uid VARCHAR(50) PRIMARY KEY,
-            uname VARCHAR(50) NOT NULL,
-            upwd VARCHAR(50) NOT NULL
-        ) ENGINE=InnoDB;
-    """)
-    conn.commit()
-    cursor.close()
-    conn.close()
+def sales_mgmt( ):
+           while True :
+                      print("\t\t\t 1. Sale Items")
+                      print("\t\t\t 2. List Sales")
+                      print("\t\t\t 3. Back (Main Menu)")
+                      s=int (input("\t\tEnter Your Choice :"))
+                      if s== 1 :
+                                 sale_product()
+                      if s== 2 :
+                                 list_sale()
+                      if s== 3 :
+                                 break
 
+def user_mgmt( ):
+           while True :
+                      print("\t\t\t 1. Add user")
+                      print("\t\t\t 2. List user")
+                      print("\t\t\t 3. Back (Main Menu)")
+                      u=int (input("\t\tEnter Your Choice :"))
+                      if u==1:
+                                 add_user()
+                      if u==2:
+                                 list_user()
+                      if u==3:
+                                 break
 
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+def create_database():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           print(" Creating PRODUCT table")
+           sql = "CREATE TABLE if not exists product (\
+                  pcode int(4) PRIMARY KEY,\
+                  pname char(30) NOT NULL,\
+                  pprice float(8,2) ,\
+                  pqty int(4) ,\
+                  pcat char(30));"
+           mycursor.execute(sql)
+           print(" Creating ORDER table")
+           sql = "CREATE TABLE if not exists orders (\
+                  orderid int(4)PRIMARY KEY ,\
+                  orderdate DATE ,\
+                  pcode char(30) NOT NULL , \
+                  pprice float(8,2) ,\
+                  pqty int(4) ,\
+                  supplier char(50),\
+                  pcat char(30));"
+           mycursor.execute(sql)
+           print(" ORDER table created")
 
+           print(" Creating SALES table")
+           sql = "CREATE TABLE if not exists sales (\
+                  salesid int(4) PRIMARY KEY ,\
+                  salesdate DATE ,\
+                  pcode char(30) references product(pcode), \
+                  pprice float(8,2) ,\
+                  pqty int(4) ,\
+                  Total double(8,2)\
+                  );"
+           mycursor.execute(sql)
+           print(" SALES table created")
+           sql = "CREATE TABLE if not exists user (\
+                  uid char(6) PRIMARY KEY,\
+                  uname char(30) NOT NULL,\
+                  upwd char(30));"
+           mycursor.execute(sql)
+           print(" USER table created")
 
-def product_menu():
-    while True:
-        clear_screen()
-        print("\nPRODUCT MANAGEMENT\n")
-        print("1. Add New Product")
-        print("2. List Products")
-        print("3. Update Stock Quantity")
-        print("4. Delete Product")
-        print("5. Back to Main Menu")
-        choice = input("Enter choice: ")
-        if choice == '1':
-            add_product()
-        elif choice == '2':
-            list_products()
-        elif choice == '3':
-            update_stock()
-        elif choice == '4':
-            delete_product()
-        elif choice == '5':
-            break
-        else:
-            print("Invalid choice. Try again.")
-        input("Press Enter to continue...")
-
-
-def add_product():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        pcode = int(input("Enter product code: "))
-        # Check if exists
-        cursor.execute("SELECT 1 FROM product WHERE pcode=%s", (pcode,))
-        if cursor.fetchone():
-            print("Product code already exists.")
-        else:
-            pname = input("Enter product name: ")
-            pqty = int(input("Enter quantity: "))
-            pprice = float(input("Enter unit price: "))
-            pcat = input("Enter category: ")
-            cursor.execute(
-                "INSERT INTO product (pcode,pname,pprice,pqty,pcat) VALUES (%s,%s,%s,%s,%s)",
-                (pcode, pname, pprice, pqty, pcat)
-            )
-            conn.commit()
-            print("Product added successfully.")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def list_products():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    cursor.execute("SELECT pcode, pname, pprice, pqty, pcat FROM product")
-    rows = cursor.fetchall()
-    print("\nPRODUCT LIST")
-    print(f"{'Code':<6} {'Name':<20} {'Price':<10} {'Qty':<6} {'Category'}")
-    print('-'*60)
-    for r in rows:
-        print(f"{r[0]:<6} {r[1]:<20} {r[2]:<10.2f} {r[3]:<6} {r[4]}")
-    cursor.close()
-    conn.close()
-
-
-def update_stock():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        pcode = int(input("Enter product code: "))
-        qty = int(input("Enter quantity to add: "))
-        cursor.execute("UPDATE product SET pqty = pqty + %s WHERE pcode = %s", (qty, pcode))
-        conn.commit()
-        print("Stock updated.")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def delete_product():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        pcode = int(input("Enter product code to delete: "))
-        cursor.execute("DELETE FROM product WHERE pcode = %s", (pcode,))
-        conn.commit()
-        print(f"{cursor.rowcount} record(s) deleted.")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def purchase_menu():
-    while True:
-        clear_screen()
-        print("\nPURCHASE MANAGEMENT\n")
-        print("1. Add Purchase Order")
-        print("2. List Orders")
-        print("3. Back to Main Menu")
-        choice = input("Enter choice: ")
-        if choice == '1':
-            add_order()
-        elif choice == '2':
-            list_orders()
-        elif choice == '3':
-            break
-        else:
-            print("Invalid choice.")
-        input("Press Enter to continue...")
-
+def list_database():
+        mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")   
+        mycursor=mydb.cursor()
+        sql="show tables;"
+        mycursor.execute(sql)
+        for i in mycursor:
+                   print(i)
 
 def add_order():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        pcode = int(input("Enter product code: "))
-        cursor.execute("SELECT pprice, pcat FROM product WHERE pcode=%s", (pcode,))
-        product = cursor.fetchone()
-        if not product:
-            print("Product not found.")
-            return
-        unit_price, category = product
-        qty = int(input("Enter quantity: "))
-        supplier = input("Enter supplier name: ")
-        now = datetime.now()
-        cursor.execute(
-            "INSERT INTO orders (orderdate,pcode,pprice,pqty,supplier,pcat) VALUES (%s,%s,%s,%s,%s,%s)",
-            (now, pcode, unit_price, qty, supplier, category)
-        )
-        # Update stock
-        cursor.execute("UPDATE product SET pqty = pqty + %s WHERE pcode = %s", (qty, pcode))
-        conn.commit()
-        print("Order placed successfully.")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           now = datetime.datetime.now()
+           sql="INSERT INTO orders(orderid,orderdate,pcode,pprice,pqty,supplier,pcat) values (%s,%s,%s,%s,%s,%s,%s)"
+           code=int(input("Enter product code :"))
+           oid=now.year+now.month+now.day+now.hour+now.minute+now.second
+           qty=int(input("Enter product quantity : "))
+           price=float(input("Enter Product unit price: "))
+           cat=input("Enter product category: ")
+           supplier=input("Enter Supplier details: ")           
+           val=(oid,now,code,price,qty,supplier,cat)
+           mycursor.execute(sql,val)
+           mydb.commit()
 
 
-def list_orders():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    cursor.execute("SELECT orderid, orderdate, pcode, pprice, pqty, supplier, pcat FROM orders")
-    rows = cursor.fetchall()
-    print("\nORDER LIST")
-    print(f"{'ID':<5} {'Date':<20} {'Code':<6} {'Price':<10} {'Qty':<5} {'Supplier':<15} {'Category'}")
-    print('-'*80)
-    for r in rows:
-        print(f"{r[0]:<5} {r[1]:<20} {r[2]:<6} {r[3]:<10.2f} {r[4]:<5} {r[5]:<15} {r[6]}")
-    cursor.close()
-    conn.close()
+
+def list_order():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="SELECT * from orders"
+           mycursor.execute(sql)
+           clrscr()
+           print("\t\t\t\t\t\t\t ORDER DETAILS")
+           print("-"*85)
+           print("orderid    Date    Product code    price     quantity      Supplier      Category")
+           print("-"*85)
+           for i in mycursor:
+                      print(i[0],"\t",i[1],"\t",i[2],"\t   ",i[3],"\t",i[4],"\t     ",i[5],"\t",i[6])
+           print("-"*85)
+                
+
+def db_mgmt( ):
+           while True :
+                      print("\t\t\t 1. Database creation")
+                      print("\t\t\t 2. List Database")
+                      print("\t\t\t 3. Back (Main Menu)")
+                      p=int (input("\t\tEnter Your Choice :"))
+                      if p==1 :
+                                 create_database()
+                      if p==2 :
+                                 list_database()
+                      if p== 3 :
+                                 break
+def add_product():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="INSERT INTO product(pcode,pname,pprice,pqty,pcat) values (%s,%s,%s,%s,%s)"
+           code=int(input("\t\tEnter product code :"))
+           search="SELECT count(*) FROM product WHERE pcode=%s;"
+           val=(code,)
+           mycursor.execute(search,val)
+           for x in mycursor:
+                      cnt=x[0]
+           if cnt==0:
+                      name=input("\t\tEnter product name :")
+                      qty=int(input("\t\tEnter product quantity :"))
+                      price=float(input("\t\tEnter product unit price :"))
+                      cat=input("\t\tEnter Product category :")
+                      val=(code,name,price,qty,cat)
+                      mycursor.execute(sql,val)
+                      mydb.commit()
+           else:
+                      print("\t\t Product already exist")
+def update_product():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           code=int(input("Enter the product code :"))
+           qty=int(input("Enter the quantity :"))
+           sql="UPDATE product SET pqty=pqty+%s WHERE pcode=%s;"
+           val=(qty,code)
+           mycursor.execute(sql,val)
+           mydb.commit()
+           print("\t\t Product details updated")
+
+def delete_product():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           code=int(input("Enter the product code :"))
+           sql="DELETE FROM product WHERE pcode = %s;"
+           val=(code,)
+           mycursor.execute(sql,val)
+           mydb.commit()
+           print(mycursor.rowcount," record(s) deleted");
+def search_product():
+                    
+           while True :
+                      print("\t\t\t 1. List all product")
+                      print("\t\t\t 2. List product code wise")
+                      print("\t\t\t 3. List product categoty wise")
+                      print("\t\t\t 4. Back (Main Menu)")
+                      s=int (input("\t\tEnter Your Choice :"))
+                      if s==1 :
+                                 list_product()
+                      if s==2 :
+                                  code=int(input(" Enter product code :"))
+                                  list_prcode(code)
+                                  
+                      if s==3 :
+                                  cat=input("Enter category :")
+                                  list_prcat(cat)
+                                 
+                      if s== 4 :
+                                 break
+
+def list_product():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="SELECT * from product"
+           mycursor.execute(sql)
+           clrscr()
+           print("\t\t\t\t PRODUCT DETAILS")
+           print("\t\t","-"*47)
+           print("\t\t code    name    price   quantity      category")
+           print("\t\t","-"*47)
+           for i in mycursor:
+                      print("\t\t",i[0],"\t",i[1],"\t",i[2],"\t   ",i[3],"\t\t",i[4])
+           print("\t\t","-"*47)
 
 
-def sales_menu():
-    while True:
-        clear_screen()
-        print("\nSALES MANAGEMENT\n")
-        print("1. Sell Product")
-        print("2. List Sales")
-        print("3. Back to Main Menu")
-        choice = input("Enter choice: ")
-        if choice == '1':
-            sell_product()
-        elif choice == '2':
-            list_sales()
-        elif choice == '3':
-            break
-        else:
-            print("Invalid choice.")
-        input("Press Enter to continue...")
+def list_prcode(code):
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="SELECT * from product WHERE pcode=%s"
+           val=(code,)
+           mycursor.execute(sql,val)
+           clrscr()
+           print("\t\t\t\t PRODUCT DETAILS")
+           print("\t\t","-"*47)
+           print("\t\t code    name    price   quantity      category")
+           print("\t\t","-"*47)
+           for i in mycursor:
+                      print("\t\t",i[0],"\t",i[1],"\t",i[2],"\t   ",i[3],"\t\t",i[4])
+           print("\t\t","-"*47)
 
 
-def sell_product():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        pcode = int(input("Enter product code: "))
-        cursor.execute("SELECT pprice, pqty FROM product WHERE pcode=%s", (pcode,))
-        product = cursor.fetchone()
-        if not product:
-            print("Product not found.")
-            return
-        unit_price, stock_qty = product
-        qty = int(input("Enter quantity to sell: "))
-        if qty > stock_qty:
-            print("Insufficient stock.")
-            return
-        total = qty * unit_price
-        now = datetime.now()
-        cursor.execute(
-            "INSERT INTO sales (salesdate,pcode,pprice,pqty,total) VALUES (%s,%s,%s,%s,%s)",
-            (now, pcode, unit_price, qty, total)
-        )
-        cursor.execute("UPDATE product SET pqty = pqty - %s WHERE pcode = %s", (qty, pcode))
-        conn.commit()
-        print(f"Sale recorded. Total: Rs. {total:.2f}")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
+def sale_product():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           pcode=input("Enter product code: ")
+           sql="SELECT count(*) from product WHERE pcode=%s;"
+           val=(pcode,)
+           mycursor.execute(sql,val)
+           for x in mycursor:
+                      cnt=x[0]
+           if cnt !=0 :
+                      sql="SELECT * from product WHERE pcode=%s;"
+                      val=(pcode,)
+                      mycursor.execute(sql,val)
+                      for x in mycursor:
+                                 print(x)
+                                 price=int(x[2])
+                                 pqty=int(x[3])
+                      qty=int(input("Enter no of quantity :"))
+                      if qty <= pqty:
+                                 total=qty*price;
+                                 print ("Collect  Rs. ", total)
+                                 sql="INSERT into sales values(%s,%s,%s,%s,%s,%s)"
+                                 val=(int(cnt)+1,datetime.datetime.now(),pcode,price,qty,total)
+                                 mycursor.execute(sql,val)
+                                 sql="UPDATE product SET pqty=pqty-%s WHERE pcode=%s"
+                                 val=(qty,pcode)
+                                 mycursor.execute(sql,val)
+                                 mydb.commit()
+                      else:
+                                 print(" Quantity not Available")
+           else:
+                      print(" Product is not avalaible")
 
-
-def list_sales():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    cursor.execute("SELECT salesid, salesdate, pcode, pprice, pqty, total FROM sales")
-    rows = cursor.fetchall()
-    print("\nSALES LIST")
-    print(f"{'ID':<5} {'Date':<20} {'Code':<6} {'Price':<10} {'Qty':<5} {'Total'}")
-    print('-'*70)
-    for r in rows:
-        print(f"{r[0]:<5} {r[1]:<20} {r[2]:<6} {r[3]:<10.2f} {r[4]:<5} {r[5]:.2f}")
-    cursor.close()
-    conn.close()
-
-
-def user_menu():
-    while True:
-        clear_screen()
-        print("\nUSER MANAGEMENT\n")
-        print("1. Add User")
-        print("2. List Users")
-        print("3. Back to Main Menu")
-        choice = input("Enter choice: ")
-        if choice == '1':
-            add_user()
-        elif choice == '2':
-            list_users()
-        elif choice == '3':
-            break
-        else:
-            print("Invalid choice.")
-        input("Press Enter to continue...")
-
+def list_sale():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="SELECT * FROM sales"
+           mycursor.execute(sql)
+           print(" \t\t\t\tSALES DETAILS")
+           print("-"*80)
+           print("Sales id  Date    Product Code     Price             Quantity           Total")
+           print("-"*80)
+           for x in mycursor:
+                      print(x[0],"\t",x[1],"\t",x[2],"\t   ",x[3],"\t\t",x[4],"\t\t",x[5])
+           print("-"*80)
+                                 
+                              
+def list_prcat(cat):
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           print (cat)
+           sql="SELECT * from product WHERE pcat =%s"
+           val=(cat,)
+           mycursor.execute(sql,val)
+           clrscr()
+           print("\t\t\t\t PRODUCT DETAILS")
+           print("\t\t","-"*47)
+           print("\t\t code    name    price   quantity      category")
+           print("\t\t","-"*47)
+           for i in mycursor:
+                      print("\t\t",i[0],"\t",i[1],"\t",i[2],"\t   ",i[3],"\t\t",i[4])
+           print("\t\t","-"*47)
 
 def add_user():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    try:
-        uid = input("Enter user ID (email): ")
-        cursor.execute("SELECT 1 FROM user WHERE uid=%s", (uid,))
-        if cursor.fetchone():
-            print("User already exists.")
-            return
-        uname = input("Enter name: ")
-        upwd = input("Enter password: ")
-        cursor.execute(
-            "INSERT INTO user (uid,uname,upwd) VALUES (%s,%s,%s)",
-            (uid, uname, upwd)
-        )
-        conn.commit()
-        print("User added.")
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        conn.close()
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           uid=input("Enter emaid id :")
+           name=input(" Enter Name :")
+           paswd=input("Enter Password :")
+           sql="INSERT INTO user values (%s,%s,%s);"
+           val=(uid,name,paswd)
+           mycursor.execute(sql,val)
+           mydb.commit()
+           print(mycursor.rowcount, " user created")
 
 
-def list_users():
-    conn = get_connection()
-    if not conn:
-        return
-    cursor = conn.cursor()
-    cursor.execute("SELECT uid, uname FROM user")
-    rows = cursor.fetchall()
-    print("\nUSER LIST")
-    print(f"{'UID':<25} {'Name'}")
-    print('-'*40)
-    for r in rows:
-        print(f"{r[0]:<25} {r[1]}")
-    cursor.close()
-    conn.close()
+def list_user():
+           mydb=mysql.connector.connect(host="localhost",user="root",passwd="12345",database="stock")
+           mycursor=mydb.cursor()
+           sql="SELECT uid,uname from user"
+           mycursor.execute(sql)
+           clrscr()
+           print("\t\t\t\t USER DETAILS")
+           print("\t\t","-"*27)
+           print("\t\t UID        name    ")
+           print("\t\t","-"*27)
+           for i in mycursor:
+                      print("\t\t",i[0],"\t",i[1])
+           print("\t\t","-"*27)
+
+def clrscr():
+            print("\n"*5)
 
 
-def main_menu():
-    initialize_db()
-    while True:
-        clear_screen()
-        print("\nSTOCK MANAGEMENT SYSTEM\n")
-        print("1. Product Management")
-        print("2. Purchase Management")
-        print("3. Sales Management")
-        print("4. User Management")
-        print("5. Exit")
-        choice = input("Enter choice: ")
-        if choice == '1':
-            product_menu()
-        elif choice == '2':
-            purchase_menu()
-        elif choice == '3':
-            sales_menu()
-        elif choice == '4':
-            user_menu()
-        elif choice == '5':
-            print("Exiting...")
-            break
-        else:
-            print("Invalid option.")
-        input("Press Enter to continue...")
-
-
-if __name__ == '__main__':
-    main_menu()
+while True:
+           clrscr()
+           print("\t\t\t STOCK MANAGEMENT")
+           print("\t\t\t ****************\n")
+           print("\t\t 1. PRODUCT MANAGEMENT")
+           print("\t\t 2. PURCHASE MANAGEMENT")
+           print("\t\t 3. SALES MANAGEMENT")
+           print("\t\t 4. USER MANAGEMENT")
+           print("\t\t 5. DATABASE SETUP")
+           print("\t\t 6. EXIT\n")
+           n=int(input("Enter your choice :"))
+           if n== 1:
+                      product_mgmt()
+           if n== 2:
+                      os.system('cls')
+                      purchase_mgmt()
+           if n== 3:
+                      sales_mgmt()
+           if n== 4:
+                      user_mgmt()
+           if n==5 :
+                      db_mgmt()
+           if n== 6:
+                      break
